@@ -10,17 +10,18 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.bukkit.World;
-import org.bukkit.craftbukkit.CraftWorld;
+import org.bukkit.event.Event;
+import org.bukkit.event.Event.Priority;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class NoRegen extends JavaPlugin
 {
-    public NoRegen() {}
+    public List<World> worldList = new LinkedList<World>();
+    private NoRegenEntityListener el = new NoRegenEntityListener(this);
     
     public void onEnable()
     {
         File worldFile;
-        List<World> worldList = new LinkedList<World>();
         
         // FILE CHECK/CREATION
         try
@@ -83,29 +84,7 @@ public class NoRegen extends JavaPlugin
             return;
         }
         
-        // SETTINGS
-        CraftWorld cw;
-        net.minecraft.server.World nmsWorld;
-        for (World w : worldList)
-        {
-            cw = (CraftWorld) w;
-            
-            // If the world isn't null, get the n.m.s.World
-            if (w != null)
-            {
-                nmsWorld = cw.getHandle();
-            }
-            else
-            {
-                System.out.println(w + " is not a real world.");
-                continue;
-            }
-            
-            /* allowMonsters = false means no monsters will spawn, and
-             * spawnMonsters > 0 means health will not be regenerated. */
-            nmsWorld.allowMonsters = false;
-            nmsWorld.spawnMonsters = 1;
-        }
+        getServer().getPluginManager().registerEvent(Event.Type.ENTITY_REGAIN_HEALTH, el, Priority.Highest, this);
         
         System.out.println("[NoRegen] Enabled.");
     }
